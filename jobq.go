@@ -62,3 +62,40 @@ func New() *JobQueue {
 
 	return &JobQueue{wait: wait, jobs: jobs, queue: queue}
 }
+
+type (
+	SetProcessedFunc func(j Job)
+	IsProcessedFunc  func(j Job) bool
+)
+
+func NewWithFuncs(isProcessed IsProcessedFunc, setProcessed SetProcessedFunc) *JobQueue {
+	queueCount := 0
+	wait := make(chan int)
+	jobs := make(chan Job)
+	queue := make(chan Job)
+
+	go func() {
+		for delta := range wait {
+			queueCount += delta
+			if queueCount == 0 {
+				close(queue)
+			}
+		}
+	}()
+
+	go func() {
+		for j := range queue {
+			if !isProcessed(j) {
+				setProcessed(j)
+				jobs <- j
+			} else {
+				wait <- -1
+			}
+		}
+
+		close(jobs)
+		close(wait)
+	}()
+
+	return &JobQueue{wait: wait, jobs: jobs, queue: queue}
+}
