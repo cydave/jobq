@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -29,7 +28,7 @@ func worker(wg *sync.WaitGroup, jq *jobq.JobQueue) {
 		log.Printf("[worker:%s] Handling job #%s\n", workerID, job.ID())
 
 		// Produce new jobs at random
-		if rand.Intn(10)%2 == 0 {
+		if rand.Intn(100)%2 == 0 {
 			newJobsCount := rand.Intn(3)
 			newJobs := make([]jobq.Job, newJobsCount)
 			for i := 0; i < newJobsCount; i++ {
@@ -78,5 +77,6 @@ func main() {
 	}
 	jq.Enqueue(jobs)
 	wg.Wait()
-	fmt.Println("all done!")
+
+	log.Println("all done!")
 }

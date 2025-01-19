@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"sync"
@@ -25,6 +24,7 @@ func NewJob() Job {
 func worker(wg *sync.WaitGroup, jq *jobq.JobQueue) {
 	workerID := uuid.NewString()[:8]
 	defer wg.Done()
+
 	for job := range jq.Jobs() {
 		log.Printf("[worker:%s] Handling job #%s\n", workerID, job.ID())
 
@@ -60,5 +60,6 @@ func main() {
 	}
 	jq.Enqueue(jobs)
 	wg.Wait()
-	fmt.Println("all done!")
+
+	log.Println("all done!")
 }
