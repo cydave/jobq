@@ -38,11 +38,12 @@ func worker(wg *sync.WaitGroup, jq *jobq.JobQueue) {
 				newJobs[i] = j
 			}
 			if newJobsCount > 0 {
-				// Produce duplicates
+				// Produce duplicates to showcase the isProcessed and
+				// setProcessed funcs.
 				for i := 0; i < 3; i++ {
-					log.Printf("[worker:%s] Producing duplicate job #%s\n", workerID, job.ID())
 					newJobs = append(newJobs, job)
 				}
+
 				jq.Enqueue(newJobs)
 			}
 		}
