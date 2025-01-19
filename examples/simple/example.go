@@ -38,7 +38,7 @@ func worker(wg *sync.WaitGroup, jq *jobq.JobQueue) {
 				newJobs[i] = j
 			}
 			if newJobsCount > 0 {
-				jq.Enqueue(newJobs)
+				jq.EnqueueMulti(newJobs)
 			}
 		}
 

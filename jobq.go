@@ -10,8 +10,23 @@ type JobQueue struct {
 	queue chan Job
 }
 
-func (jq JobQueue) Enqueue(jobs []Job) {
-	if len(jobs) == 0 {
+func (jq JobQueue) EnqueueSingle(job Job) {
+	jq.wait <- 1
+	go func() {
+		jq.queue <- job
+	}()
+}
+
+func ToJobs[T Job](jobs []T) []Job {
+	ret := make([]Job, len(jobs))
+	for i, j := range jobs {
+		ret[i] = j
+	}
+	return ret
+}
+
+func (jq JobQueue) EnqueueMulti(jobs []Job) {
+	if len(jobs) <= 0 {
 		return
 	}
 	jq.wait <- len(jobs)
