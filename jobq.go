@@ -17,16 +17,8 @@ type JobQueue[T Job] struct {
 	queue chan T
 }
 
-// EnqueueSingle enqueues a single job to be processed.
-func (jq *JobQueue[T]) EnqueueSingle(job T) {
-	jq.wait <- 1
-	go func() {
-		jq.queue <- job
-	}()
-}
-
 // Enqueue enqueues multiple jobs to be prolcessed.
-func (jq *JobQueue[T]) Enqueue(jobs []T) {
+func (jq *JobQueue[T]) Enqueue(jobs ...T) {
 	if len(jobs) <= 0 {
 		return
 	}
