@@ -14,11 +14,12 @@ type Job struct {
 }
 
 func (j Job) ID() string {
-	return j.id
+	return string(j.id)
 }
 
 func NewJob() Job {
-	return Job{id: uuid.NewString()[:8]}
+	id := uuid.NewString()[:8]
+	return Job{id: string(id)}
 }
 
 func worker(wg *sync.WaitGroup, jq *jobq.JobQueue[Job]) {
@@ -31,12 +32,19 @@ func worker(wg *sync.WaitGroup, jq *jobq.JobQueue[Job]) {
 		// Produce new jobs at random
 		if rand.Intn(10)%2 == 0 {
 			newJobsCount := rand.Intn(3)
-			newJobs := make([]Job, newJobsCount)
+			newJobs := make([]Job, 0)
 			for i := 0; i < newJobsCount; i++ {
 				j := NewJob()
 				log.Printf("[worker:%s] Producing new job #%s\n", workerID, j.ID())
-				newJobs[i] = j
+				newJobs = append(newJobs, j)
 			}
+
+			// Also enqueue some duplicate jobs.
+			for i := 0; i < newJobsCount; i++ {
+				log.Printf("[worker:%s] Producing duplicate job #%s\n", workerID, job.ID())
+				newJobs = append(newJobs, job)
+			}
+
 			if newJobsCount > 0 {
 				jq.Enqueue(newJobs...)
 			}
@@ -47,7 +55,7 @@ func worker(wg *sync.WaitGroup, jq *jobq.JobQueue[Job]) {
 }
 
 func main() {
-	jq := jobq.New[Job]()
+	jq := jobq.NewDup[Job]()
 	wg := new(sync.WaitGroup)
 	for i := 0; i < 10; i++ {
 		wg.Add(1)

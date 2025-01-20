@@ -51,12 +51,40 @@ func New[T Job]() *JobQueue[T] {
 
 	go func() {
 		for j := range queue {
-			if _, ok := processed[j.ID()]; !ok {
-				processed[j.ID()] = struct{}{}
+			id := j.ID()
+			if _, ok := processed[id]; !ok {
+				processed[id] = struct{}{}
 				jobs <- j
 			} else {
 				wait <- -1
 			}
+		}
+
+		close(jobs)
+		close(wait)
+	}()
+
+	return &JobQueue[T]{wait: wait, jobs: jobs, queue: queue}
+}
+
+func NewDup[T Job]() *JobQueue[T] {
+	queueCount := 0
+	wait := make(chan int)
+	jobs := make(chan T)
+	queue := make(chan T)
+
+	go func() {
+		for delta := range wait {
+			queueCount += delta
+			if queueCount == 0 {
+				close(queue)
+			}
+		}
+	}()
+
+	go func() {
+		for j := range queue {
+			jobs <- j
 		}
 
 		close(jobs)
