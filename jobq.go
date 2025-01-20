@@ -15,14 +15,14 @@ type JobQueue[T Job] struct {
 	queue chan T
 }
 
-func (jq *JobQueue[T]) Enqueue(job T) {
+func (jq *JobQueue[T]) EnqueueSingle(job T) {
 	jq.wait <- 1
 	go func() {
 		jq.queue <- job
 	}()
 }
 
-func (jq *JobQueue[T]) EnqueueMulti(jobs []T) {
+func (jq *JobQueue[T]) Enqueue(jobs []T) {
 	if len(jobs) <= 0 {
 		return
 	}

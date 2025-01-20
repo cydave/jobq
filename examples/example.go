@@ -38,7 +38,7 @@ func worker(wg *sync.WaitGroup, jq *jobq.JobQueue[Job]) {
 				newJobs[i] = j
 			}
 			if newJobsCount > 0 {
-				jq.EnqueueMulti(newJobs)
+				jq.Enqueue(newJobs)
 			}
 		}
 
@@ -58,7 +58,7 @@ func main() {
 	for i := 0; i < 10; i++ {
 		jobs[i] = NewJob()
 	}
-	jq.EnqueueMulti(jobs)
+	jq.Enqueue(jobs)
 	wg.Wait()
 
 	log.Println("all done!")
