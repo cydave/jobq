@@ -7,6 +7,8 @@ type Job interface {
 type IJobQueue[T Job] interface {
 	EnqueueSingle(T)
 	Enqueue([]T)
+	MarkJobDone()
+	Jobs() <-chan T
 }
 
 type JobQueue[T Job] struct {
@@ -15,6 +17,7 @@ type JobQueue[T Job] struct {
 	queue chan T
 }
 
+// EnqueueSingle enqueues a single job to be processed.
 func (jq *JobQueue[T]) EnqueueSingle(job T) {
 	jq.wait <- 1
 	go func() {
@@ -22,6 +25,7 @@ func (jq *JobQueue[T]) EnqueueSingle(job T) {
 	}()
 }
 
+// Enqueue enqueues multiple jobs to be prolcessed.
 func (jq *JobQueue[T]) Enqueue(jobs []T) {
 	if len(jobs) <= 0 {
 		return
@@ -34,10 +38,12 @@ func (jq *JobQueue[T]) Enqueue(jobs []T) {
 	}()
 }
 
+// Jobs returns the job queue which workers can range over to prcess jobs.
 func (jq *JobQueue[T]) Jobs() <-chan T {
 	return jq.jobs
 }
 
+// MarkJobDone needs to be called after a job has been processed by a worker.
 func (jq *JobQueue[T]) MarkJobDone() {
 	jq.wait <- -1
 }
