@@ -12,14 +12,17 @@ Think of it as a webcrawler-esque job queue:
 3. For each found URL:
    - enqueue URL for crawling
 
-**Note:** by default, jobq deduplicates jobs. Jobs that have been processed are
+**Note:** by default, jobq de-duplicates jobs. Jobs that have been processed are
 indexed in an internal map. Jobs with the same ID are
 skipped if they are fed back in the job queue. If you have no need for
 deduplication, use `jobq.NewDup[T]()` instead of `jobq.New[T]()`.
 
-## Example
+## Examples
 
-Find examples under [examples/](examples/)
+Currently there are two simple examples to get started with jobq:
+
+- [de-duplicating jobq](examples/dedup/example.go)
+- [non-de-duplicating jobq](examples/dup/example.go)
 
 ## Credits
 
