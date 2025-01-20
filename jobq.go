@@ -4,28 +4,25 @@ type Job interface {
 	ID() string
 }
 
-type JobQueue struct {
-	wait  chan int
-	jobs  chan Job
-	queue chan Job
+type IJobQueue[T Job] interface {
+	EnqueueSingle(T)
+	Enqueue([]T)
 }
 
-func (jq JobQueue) EnqueueSingle(job Job) {
+type JobQueue[T Job] struct {
+	wait  chan int
+	jobs  chan T
+	queue chan T
+}
+
+func (jq *JobQueue[T]) Enqueue(job T) {
 	jq.wait <- 1
 	go func() {
 		jq.queue <- job
 	}()
 }
 
-func ToJobs[T Job](jobs []T) []Job {
-	ret := make([]Job, len(jobs))
-	for i, j := range jobs {
-		ret[i] = j
-	}
-	return ret
-}
-
-func (jq JobQueue) EnqueueMulti(jobs []Job) {
+func (jq *JobQueue[T]) EnqueueMulti(jobs []T) {
 	if len(jobs) <= 0 {
 		return
 	}
@@ -37,19 +34,19 @@ func (jq JobQueue) EnqueueMulti(jobs []Job) {
 	}()
 }
 
-func (jq JobQueue) Jobs() <-chan Job {
+func (jq *JobQueue[T]) Jobs() <-chan T {
 	return jq.jobs
 }
 
-func (jq JobQueue) MarkJobDone() {
+func (jq *JobQueue[T]) MarkJobDone() {
 	jq.wait <- -1
 }
 
-func New() *JobQueue {
+func New[T Job]() *JobQueue[T] {
 	queueCount := 0
 	wait := make(chan int)
-	jobs := make(chan Job)
-	queue := make(chan Job)
+	jobs := make(chan T)
+	queue := make(chan T)
 	processed := map[string]interface{}{}
 
 	go func() {
@@ -75,42 +72,5 @@ func New() *JobQueue {
 		close(wait)
 	}()
 
-	return &JobQueue{wait: wait, jobs: jobs, queue: queue}
-}
-
-type (
-	SetProcessedFunc func(j Job)
-	IsProcessedFunc  func(j Job) bool
-)
-
-func NewWithFuncs(isProcessed IsProcessedFunc, setProcessed SetProcessedFunc) *JobQueue {
-	queueCount := 0
-	wait := make(chan int)
-	jobs := make(chan Job)
-	queue := make(chan Job)
-
-	go func() {
-		for delta := range wait {
-			queueCount += delta
-			if queueCount == 0 {
-				close(queue)
-			}
-		}
-	}()
-
-	go func() {
-		for j := range queue {
-			if !isProcessed(j) {
-				setProcessed(j)
-				jobs <- j
-			} else {
-				wait <- -1
-			}
-		}
-
-		close(jobs)
-		close(wait)
-	}()
-
-	return &JobQueue{wait: wait, jobs: jobs, queue: queue}
+	return &JobQueue[T]{wait: wait, jobs: jobs, queue: queue}
 }
