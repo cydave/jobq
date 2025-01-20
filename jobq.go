@@ -4,13 +4,6 @@ type Job interface {
 	ID() string
 }
 
-type IJobQueue[T Job] interface {
-	EnqueueSingle(T)
-	Enqueue([]T)
-	MarkJobDone()
-	Jobs() <-chan T
-}
-
 type JobQueue[T Job] struct {
 	wait  chan int
 	jobs  chan T
