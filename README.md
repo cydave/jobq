@@ -14,7 +14,7 @@ Think of it as a webcrawler-esque job queue:
 
 ## Example
 
-A simple example on how jobq is used can be found under [examples/example.go](examples/simple/example.go).
+A simple example on how jobq is used can be found under [examples/example.go](examples/example.go).
 
 ## Credits
 
